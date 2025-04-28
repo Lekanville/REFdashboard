@@ -1,0 +1,10 @@
+services:
+  app:
+    image: yourstreamlitapp:latest
+    build: 
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - 8501:8501
+    volumes:
+      - ./dashboard:/app
