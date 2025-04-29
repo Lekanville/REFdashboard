@@ -1,0 +1,40 @@
+
+#for static files
+aiofiles
+fastapi==0.111.0
+
+#for template
+jinja2
+
+#MongoDB IO Driver
+motor>=3.6
+
+#for data science
+numpy==1.26.4
+openpyxl==3.1.4
+pandas==2.2.1
+
+
+#hashing
+passlib[bcrypt]
+
+#standardizes code formats before committing it
+pre-commit==3.4.0
+
+#for email class in pydantic
+pydantic[email]
+
+#for testing and TDD
+pytest
+
+#for database connectivity
+python-dotenv==1.0.0
+
+#for creating jwt (json web tokens)
+python-jose==3.3.0
+
+#to handle form data by form_data: OAuth2PasswordRequestForm
+python-multipart
+requests
+scikit-learn==1.5.1
+uvicorn==0.23.1

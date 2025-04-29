@@ -1,4 +1,53 @@
+version: '3.8'
 services:
+  mongo:
+    image: mongo:latest
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - ./mongodata:/data/db
+      - ./db-confs/mongod.conf:/etc/mongo/mongod.conf
+    command: [ "mongod", "--config", "/etc/mongo/mongod.conf" ]
+    networks:
+      - app-network
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
+      ME_CONFIG_BASICAUTH: false
+    networks:
+      - app-network
+
+  ref_api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    working_dir: /home
+    volumes:
+      - ./backend:/home
+    networks:
+      - app-network
+
   app:
     image: yourstreamlitapp:latest
     build: 
@@ -6,5 +55,15 @@ services:
       dockerfile: Dockerfile
     ports:
       - 8501:8501
+    depends_on:
+      - mongo
+    working_dir: /home
     volumes:
-      - ./dashboard:/app
+      - ./dashboard:/home
+    networks:
+      - app-network
+
+
+networks:
+  app-network:
+    driver: bridge
