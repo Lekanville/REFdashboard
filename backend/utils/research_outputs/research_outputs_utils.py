@@ -5,36 +5,37 @@ import datetime
 from typing import List
 from db.db_base import get_db_handle
 from db.models.res_outputs import ResearchOutput
+from utils.journal_details.requests import pure_research_output_uuid
 
 scopus_api_key = os.environ.get("SCOPUS_API_KEY")
 pure_api_key = os.environ.get("PURE_API_KEY")
 
 
 # For the all dependents to an organization
-def all_research_outputs(school_uuid: str):
-    """
-    To get all dependents to an organization from the pure API
-    :param uuid: The uuid of the research output
-    """
-    # Get the pure_id from the uuid
-    req_pure = requests.get(
-        f"https://research-information.bris.ac.uk/ws/api/organizations/{school_uuid}/dependents",
-        headers={
-            "accept": "application/json",
-            "api-key": f"{pure_api_key}",
-            "content-type": "application/json",
-        }
-    )
+# def all_research_outputs(school_uuid: str):
+#     """
+#     To get all dependents to an organization from the pure API
+#     :param uuid: The uuid of the research output
+#     """
+#     # Get the pure_id from the uuid
+#     req_pure = requests.get(
+#         f"https://research-information.bris.ac.uk/ws/api/organizations/{school_uuid}/dependents",
+#         headers={
+#             "accept": "application/json",
+#             "api-key": f"{pure_api_key}",
+#             "content-type": "application/json",
+#         }
+#     )
 
-    if req_pure.status_code != 200:
-        raise Exception(f"Error: {req_pure.status_code} - {req_pure.text}")
-    else:
-        data = req_pure.json()
+#     if req_pure.status_code != 200:
+#         raise Exception(f"Error: {req_pure.status_code} - {req_pure.text}")
+#     else:
+#         data = req_pure.json()
         
-        # with open(f'{school_uuid}_data.json', 'w', encoding='utf-8') as f:
-        #     json.dump(data, f, ensure_ascii=False, indent=4)
+#         # with open(f'{school_uuid}_data.json', 'w', encoding='utf-8') as f:
+#         #     json.dump(data, f, ensure_ascii=False, indent=4)
         
-        return data
+#         return data
 
 # Research output UUIDS
 async def get_research_output_uuids(school_uuid: str, all_outputs: str):
@@ -51,10 +52,10 @@ async def get_research_output_uuids(school_uuid: str, all_outputs: str):
 
     #research_output_uuids = []
     all_linked_outputs = all_outputs["items"]
-    for i in all_linked_outputs:
-        if i["systemName"] == "ResearchOutput":
-           research_uuid = i["uuid"]
-           research_type = i["systemName"]
+    for linked_output in all_linked_outputs:
+        if linked_output["systemName"] == "ResearchOutput":
+           research_uuid = linked_output["uuid"]
+           research_type = linked_output["systemName"]
            query = {"research_uuid": research_uuid}
            article_count = await collection.count_documents(query)
            if (article_count == 0):
@@ -64,8 +65,6 @@ async def get_research_output_uuids(school_uuid: str, all_outputs: str):
                     "research_type":research_type,
                     "check_details": 0,
                     "check_details_date":date,
-                    "journal_details": 0,
-                    "journal_details_date":"None"
                 }
                 await collection.insert_one(detail)
     return 1
@@ -83,7 +82,7 @@ async def get_research_output_details(research_outputs_uuids: List[str]):
     To get the research output from the pure API
     :param uuids: The uuid of the research output
     """
-    # output_details = []
+
     db_name = os.environ.get("DB_NAME", "")
     uuid_col_name = os.environ.get("RESEARCH_OUTPUT_UUIDS", "")
     details_col_name = os.environ.get("RESEARCH_OUTPUT_COLLECTION", "")
@@ -92,120 +91,105 @@ async def get_research_output_details(research_outputs_uuids: List[str]):
     collection_uuids = database.get_collection(uuid_col_name)
     collection_details = database.get_collection(details_col_name)
 
-    for i in research_outputs_uuids:
-        check_details = i["check_details"]
+    for research_output in research_outputs_uuids:
+        check_details = research_output["check_details"]
 
-        # query = {"research_uuid": research_uuid}
-        # article_count = await collection.count_documents(query)
-        # print (f'article at {i}')
-        # print (f'article count is {article_count}')
-
-        # if (article_count == 0):
-        # Check if this the research details of the UUID has not been checked before
         if (check_details == 0):
-            research_uuid = i["research_uuid"]
-            school_uuid = i["school_uuid"]
+            research_uuid = research_output["research_uuid"]
+            school_uuid = research_output["school_uuid"]
 
             #Check if the research detail has not been added before
             query = {"research_uuid": research_uuid}
             article_count = await collection_details.count_documents(query)
             if (article_count == 0):
+                data = pure_research_output_uuid(research_uuid)
+                item = data["items"][0]
 
-                # Get the pure_id from the uuid
-                req_pure = requests.post(
-                    "https://research-information.bris.ac.uk/ws/api/research-outputs/search",
-                    headers={
-                        "accept": "application/json",
-                        "api-key": f"{pure_api_key}",
-                        "content-type": "application/json",
-                    },
-                    data=json.dumps({"uuids": [research_uuid]}),
-                )
+                article_type = item["typeDiscriminator"]
+                year = item["publicationStatuses"][0]["publicationDate"]["year"]
 
-                if req_pure.status_code != 200:
-                    raise Exception(f"Error: {req_pure.status_code} - {req_pure.text}")
-                else:
-                    data = req_pure.json()
-                    item = data["items"][0]
+                #Add only research outputs added after 2020
+                #if (article_type == "ContributionToJournal") & (int(year) > 2020):
+                if (int(year) > 2020):
+                    title = item["title"]["value"]
 
-                    article_type = item["typeDiscriminator"]
-                    year = item["publicationStatuses"][0]["publicationDate"]["year"]
+                    # Pure ID
+                    try:
+                        pure_id = item["pureId"]
+                    except (IndexError, KeyError):
+                        pure_id = ""
 
-                    #Add only research outputs added after 2020
-                    #if (article_type == "ContributionToJournal") & (int(year) > 2020):
-                    if (int(year) > 2020):
-                        title = item["title"]["value"]
-
-                        # Pure ID
-                        try:
-                            pure_id = item["pureId"]
-                        except (IndexError, KeyError):
-                            pure_id = ""
-
-                        # Abstract
+                    # Abstract
+                    # abstract = ""
+                    # if (abstract == "") | (str(abstract) == "None"):
+                    try:
+                        abstract = item["abstract"]["en_GB"]
+                    except (IndexError, KeyError):
                         abstract = ""
-                        if (abstract == "") | (str(abstract) == "None"):
-                            try:
-                                abstract = item["abstract"]["en_GB"]
-                            except (IndexError, KeyError):
-                                abstract = ""
 
-                        if (abstract == "") | (str(abstract) == "None"):
-                            try:
-                                abstract = item["abstract"]["en_GB"]
-                            except (IndexError, KeyError):
-                                abstract = ""
+                    # if (abstract == "") | (str(abstract) == "None"):
+                    #     try:
+                    #         abstract = item["abstract"]["en_GB"]
+                    #     except (IndexError, KeyError):
+                    #         abstract = ""
 
-                        #DOI
-                        try:
-                            doi = item["electronicVersions"][0]["doi"]
-                        except (IndexError, KeyError):
-                            doi = ""
+                    #Journal Title
+                    try:
+                        journal_title = item["journalAssociation"]["title"]["title"]
+                    except (IndexError, KeyError):
+                        journal_title = ""   
                         
-                        #ISSN
-                        # try:
-                        #     ISSN = item["publicationSeries"][0]["printIssn"]
-                        # except (IndexError, KeyError):
-                        #     ISSN = ""
-                        #    if ISSN == "":
-                            
-                        try:
-                            ISSN = item["journalAssociation"]["issn"]["issn"]
-                        except (IndexError, KeyError):
-                            ISSN = ""   
+                    #DOI
+                    try:
+                        doi = item["electronicVersions"][0]["doi"]
+                    except (IndexError, KeyError):
+                        doi = ""
 
-                        # Contributors
-                        authors = []
-                        try:
-                            contributors = item["contributors"]
-                            for contributor in contributors:
-                                fname = contributor["name"]["firstName"]
-                                lname = contributor["name"]["lastName"]
-                            #     if contributor["contributorType"] == "Author":
-                            #         author = contributor["name"]
-                            #         break
-                                author = f"{fname} {lname}"
-                                authors.append(author)
-                        except (IndexError, KeyError):
-                            authors = ""  
+                    #ISSN
+                    # try:
+                    #     ISSN = item["publicationSeries"][0]["printIssn"]
+                    # except (IndexError, KeyError):
+                    #     ISSN = ""
+                    #    if ISSN == "":
+                        
+                    try:
+                        issn = item["journalAssociation"]["issn"]["issn"]
+                    except (IndexError, KeyError):
+                        issn = ""   
 
-                        output_detail={
-                            "research_uuid": research_uuid,
-                            "school_uuid": school_uuid,
-                            "pure_id": pure_id,
-                            "article_type": article_type,
-                            "title": title,
-                            "year": year,
-                            "abstract": abstract,
-                            "doi": doi,
-                            "issn": ISSN,
-                            "authors": authors,
-                        }
+                    # Contributors
+                    authors = []
+                    try:
+                        contributors = item["contributors"]
+                        for contributor in contributors:
+                            fname = contributor["name"]["firstName"]
+                            lname = contributor["name"]["lastName"]
+                        #     if contributor["contributorType"] == "Author":
+                        #         author = contributor["name"]
+                        #         break
+                            author = f"{fname} {lname}"
+                            authors.append(author)
+                    except (IndexError, KeyError):
+                        authors = ""  
 
-                        #research_ouput = dict(ResearchOutput(**output_detail))
-                        await collection_details.insert_one(output_detail)
+                    output_detail={
+                        "research_uuid": research_uuid,
+                        "school_uuid": school_uuid,
+                        "pure_id": pure_id,
+                        "article_type": article_type,
+                        "title": title,
+                        "year": year,
+                        "abstract": abstract,
+                        "journal_title":journal_title,
+                        "doi": doi,
+                        "issn": issn,
+                        "authors": authors,
+                    }
 
-                    await update_reads(collection_uuids, research_uuid)    
+                    #research_ouput = dict(ResearchOutput(**output_detail))
+                    await collection_details.insert_one(output_detail)
+
+                await update_reads(collection_uuids, research_uuid)    
 
             else:
                 await update_reads(collection_uuids, research_uuid)

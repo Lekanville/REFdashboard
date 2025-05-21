@@ -12,3 +12,8 @@ class ResearchOutput(BaseModel):
     DOI: str | None = None
     ISSN:  str | None = None
     Authors:  str | None = None
+
+class ResearchJournalDetails(BaseModel):
+    sjr: str | None = None
+    altmetric_score: str | None = None
+    date: str | None = None

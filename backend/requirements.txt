@@ -16,16 +16,16 @@ pandas==2.2.1
 
 
 #hashing
-passlib[bcrypt]
+#passlib[bcrypt]
 
 #standardizes code formats before committing it
 pre-commit==3.4.0
 
 #for email class in pydantic
-pydantic[email]
+#pydantic[email]
 
 #for testing and TDD
-pytest
+#pytest
 
 #for database connectivity
 python-dotenv==1.0.0
@@ -38,3 +38,7 @@ python-multipart
 requests
 scikit-learn==1.5.1
 uvicorn==0.23.1
+
+#for handling route execution repeats
+fastapi-utilities==0.3.1
+typing-inspect==0.9.0

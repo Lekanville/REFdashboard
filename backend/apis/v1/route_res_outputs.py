@@ -1,9 +1,14 @@
 from fastapi import APIRouter, HTTPException, status
-from fastapi_utils.tasks import repeat_every
+from fastapi_utilities import repeat_every, repeat_at
 #from schemas.pure_output import ResearchOutput
 from db.repository.res_outputs_uuids import research_outputs_uuids
 from db.repository.res_outputs_details import research_outputs_details
+from db.repository.res_journal_features import research_journal_details
+import yaml
+from yaml.loader import SafeLoader
 
+with open('../config.yaml') as file:
+    schools = yaml.load(file, Loader=SafeLoader)
 
 
 router = APIRouter()
@@ -39,14 +44,107 @@ async def get_research_ouput_details(school_uuid: str):
     else:
         raise HTTPException(400, detail="Something went wrong")
 
-@router.on_event("startup")
-@repeat_every(seconds=60 * 60)  # 1 hour
-def remove_expired_tokens_task() -> None:
-    with sessionmaker.context_session() as db:
-        remove_expired_tokens(db=db)
+
+# @router.on_event("startup")
+# @repeat_at(cron="0 12 1 * *") #every month at 12 noon
+# async def get_journal_features():
+
+#     # Get journal features for articles after 2021
+#     response = await research_journal_details()
+#     if response:
+#         return 1
+#     else:
+#         raise HTTPException(400, detail="Something went wrong")
+    
+
+# import os
+# from db.db_base import get_db_handle
+# from utils.journal_details.requests import pure_research_output_uuid
+
+# @router.get("/api/get_journal_titles/", status_code=status.HTTP_201_CREATED)
+# async def get_research_ouput_journal_titles():
+#     db_name = os.environ.get("DB_NAME", "")
+#     res_output_col_name = os.environ.get("RESEARCH_OUTPUT_COLLECTION", "")
+#     CLIENT = get_db_handle()
+#     database = CLIENT.get_database(db_name)
+#     collection = database.get_collection(res_output_col_name)
+
+#     research_outputs = await collection.find({}, {"_id":0, "research_uuid": 1, "journal_title":1}).to_list(100000)
+
+#     for research_output in research_outputs:
+#         research_output_uuid = research_output["research_uuid"]
+#         try:
+#             research_journal_title = research_output["journal_title"]
+#         except KeyError:
+#             data = pure_research_output_uuid(research_output_uuid)
+#             item = data["items"]
+
+#             if len(item) > 0:
+#                 values = data["items"][0]
+
+#                 #Journal Title
+#                 try:
+#                     journal_title = values["journalAssociation"]["title"]["title"]
+#                 except (IndexError, KeyError):
+#                     journal_title = ""
+#             else:
+#                 journal_title = ""
+
+#             update = {"journal_title":journal_title}
+#             await collection.find_one_and_update(
+#                                         {"research_uuid": research_output_uuid},
+#                                         {"$set": update}
+#                                     )
+#     return 1
+        
+
+
+# @router.on_event("startup")
+# @repeat_every(seconds=60)  # 1 hour
+# async def get_new_research_outputs():
+    # date = datetime.datetime.now()
+    # print(date)
+    # for school in schools["schools"]:
+    #     print (school["school_name"])
+    # for school in schools:
+    #     print (school)
+    # uuid_response = await research_outputs_uuids(school_uuid)
+    # if uuid_response:
+    #     pure_details_response = await research_outputs_details(school_uuid)
+    #     if pure_details_response:
+    #         return 1
+    #     else:
+    #         raise HTTPException(400, detail="Something went wrong")
+
+    # else:
+    #     raise HTTPException(400, detail="Something went wrong")
+
+# @router.post("/api/research_time/", status_code=status.HTTP_201_CREATED)
+# async def test_repeat():
+    # date = datetime.datetime.now()
+    # # print(date)
+    # for school in schools["schools"]:
+    #     print (school["school_name"])
 
 
 
+# import os
+# from db.db_base import get_db_handle
+
+# @router.post("/api/journal_details/", status_code=status.HTTP_201_CREATED)
+# async def get_unset():
+#     db_name = os.environ.get("DB_NAME", "")
+#     uuid_col_name = os.environ.get("RESEARCH_OUTPUT_UUIDS", "")
+#     CLIENT = get_db_handle()
+#     database = CLIENT.get_database(db_name)
+#     collection = database.get_collection(uuid_col_name)
+#     update =    {
+#                 "journal_details": 1,
+#                 "journal_details_date": 1
+#             }
+#     await collection.update_many({}, {"$unset": update})
+
+#     return 1
 
 
 
@@ -66,8 +164,8 @@ def remove_expired_tokens_task() -> None:
 
 #     research_outputs_uuids = await collection.find({}, {"_id":0, "research_uuid": 1}).to_list(100000)
 
-#     for i in research_outputs_uuids:
-#         research_uuid = i["research_uuid"]
+#     for research_outputs_uuid in research_outputs_uuids:
+#         research_uuid = research_outputs_uuid["research_uuid"]
 #         update =    {
 #                         "journal_details": 0,
 #                         "journal_details_date":"None"
