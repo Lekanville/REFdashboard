@@ -7,7 +7,7 @@ def get_altmetric_score(DOI):
     This exception handling is neccessary because some articles do not have altmetric scores. In this case,
     a null value is passed.
     """
-    if req.status_code != 200:
+    if req.status_code == 200:
         req_json = req.json()
         altmetric_score = req_json["score"]
         altmetric_data = {"altmetric_score": str(altmetric_score)}

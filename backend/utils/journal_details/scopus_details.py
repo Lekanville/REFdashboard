@@ -72,7 +72,7 @@ def get_scopus_details(research_outputs_doi, research_output_journal_title, rese
             In such cases, the ISSN from the input data is used
             """
             if second == "entry":
-                values = PURE_issn_result["entry"][0]
+                values = SCOPUS_issn_result["entry"][0]
                 try:
                     sjr = values["SJRList"]["SJR"][0]["$"]
                 except KeyError:

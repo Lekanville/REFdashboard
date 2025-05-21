@@ -1,0 +1,61 @@
+schools:
+  -
+    school_uuid: 09c5e575-d05e-4551-9d84-8bdd0035c280
+    school_name: School of Biological Sciences
+  -
+    school_uuid: 0bb03298-6c72-418c-9020-f44a58f90f38
+    school_name: Bristol Dental School
+  -
+    school_uuid: 1b3627c2-d64e-4b2e-8330-df593ef5f6a2
+    school_name: Centre for Medical Education
+  - 
+    school_uuid: 1bcfb6be-8392-4fdd-b1fd-bc2ed4e8e86a
+    school_name: Teaching and Learning for Health Professionals
+  -
+    school_uuid: 1f7c3de2-919d-42b4-87e9-5310929f792a
+    school_name: Life Sciences Faculty Office
+  -
+    school_uuid: 29b44326-7593-412b-9168-3f3c74734add
+    school_name: School of Cellular and Molecular Medicine
+  -
+    school_uuid: 46648873-00f1-43d5-9838-aa825745ae03
+    school_name: Health Sciences Faculty Office
+  -
+    school_uuid: 58838096-8631-4801-bab7-442477c20124
+    school_name: School of Psychological Science
+  -
+    school_uuid: 8c61386a-acb5-4444-aea2-1fcf2c7553f0
+    school_name: Bristol Veterinary School
+  -
+    school_uuid: 98a9fd24-41d2-4600-ad7a-54950226db63
+    school_name: Bristol Medical School
+  -
+    school_uuid: a4f12a0b-d74b-43ab-b468-54138dd383b1
+    school_name: School of Physiology, Pharmacology & Neuroscience
+  -
+    school_uuid: a8469ab0-8c28-4dd2-a50b-c67445d693fe
+    school_name: School of Biochemistry
+  -
+    school_uuid: dbe80fa2-daae-498b-b9ca-04ffe4920f5f
+    school_name: School of Anatomy
+  -
+    school_uuid: ea636fb7-fc8d-46b2-84f5-f1a42a9b117f
+    school_name: Bristol Medical School (THS)
+  -
+    school_uuid: f54add52-720b-4679-8119-24ec3aaf6f63
+    school_name: Bristol Medical School (PHS)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

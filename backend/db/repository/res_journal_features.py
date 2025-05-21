@@ -44,9 +44,10 @@ async def research_journal_details():
                 
             scopus_and_altmetric = dict(scopus_data, **altmetric_score)
             date = str(datetime.datetime.now())
-            combined_data = dict(scopus_and_altmetric, date)
-            journal_details = dict(ResearchJournalDetails(**combined_data))
-
+            scopus_and_altmetric["date"] = date
+            scopus_and_altmetric["research_uuid"] = research_uuid
+            # combined_data = dict(scopus_and_altmetric, **date)
+            journal_details = dict(ResearchJournalDetails(**scopus_and_altmetric))
             await journal_details_collection.insert_one(journal_details)
 
     return 1  
