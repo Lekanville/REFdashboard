@@ -80,3 +80,21 @@ def scopus_titles(ISSN):
     data_issn = req_snip.json()["serial-metadata-response"]
 
     return data_issn
+
+#for Author details
+def author_details(author_uuid):
+    req_pure = requests.post(
+        "https://research-information.bris.ac.uk/ws/api/persons/search",
+        headers={
+            "accept": "application/json",
+            "api-key": f"{pure_api_key}",
+            "content-type": "application/json",
+        },
+        data=json.dumps({"uuids": [author_uuid]}),
+    )
+
+    if req_pure.status_code != 200:
+        raise Exception(f"Error: {req_pure.status_code} - {req_pure.text}")
+    else:
+        data = req_pure.json()
+        return (data)    

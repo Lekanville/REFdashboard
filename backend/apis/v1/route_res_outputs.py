@@ -4,6 +4,7 @@ from fastapi_utilities import repeat_every, repeat_at
 from db.repository.res_outputs_uuids import research_outputs_uuids
 from db.repository.res_outputs_details import research_outputs_details
 from db.repository.res_journal_features import research_journal_details
+from db.repository.res_journal_authors import research_journal_authors
 import yaml
 from yaml.loader import SafeLoader
 
@@ -46,9 +47,25 @@ async def get_research_output_details(school_uuid: str):
 
 @router.get("/api/journal_details/", status_code=status.HTTP_201_CREATED)
 async def get_journal_features():
+    """
+    To get SJR and altmeric scores of the research articles
+    """
 
     # Get journal features for articles after 2021
     response = await research_journal_details()
+    if response:
+        return 1
+    else:
+        raise HTTPException(400, detail="Something went wrong")
+
+@router.get("/api/authors_details/", status_code=status.HTTP_201_CREATED)
+async def get_author_details():
+    """
+    To get the authors
+    """
+
+    # Get journal features for articles after 2021
+    response = await research_journal_authors()
     if response:
         return 1
     else:
@@ -108,7 +125,13 @@ async def get_research_output_details_automated():
 @router.on_event("startup")
 #@repeat_at(cron="0 12 1 * *") #every month at 12 noon
 @repeat_every(seconds=60)  # 1 hour
-async def get_journal_features():
+async def get_journal_features_automated():
+    """
+    This is the automated version of the "get_journal_feature" route. 
+    The route is repeated as defined.
+
+    To get SJR and altmeric scores of the research articles
+    """
 
     # Get journal features for articles after 2021
     response = await research_journal_details()
@@ -117,6 +140,53 @@ async def get_journal_features():
     else:
         raise HTTPException(400, detail="Something went wrong")
     
+import os
+from db.db_base import get_db_handle
+from utils.journal_details.requests import pure_research_output_uuid
+@router.get("/api/get_authors/", status_code=status.HTTP_201_CREATED)
+async def get_authors():
+    db_name = os.environ.get("DB_NAME", "")
+    res_output_col_name = os.environ.get("RESEARCH_OUTPUT_COLLECTION", "")
+    CLIENT = get_db_handle()
+    database = CLIENT.get_database(db_name)
+    collection = database.get_collection(res_output_col_name)
+    research_outputs = await collection.find({}, {"_id":0, "external_author_uuids": 1, "internal_author_uuids":1}).to_list(100000)
+    for research_output in research_outputs:
+        research_output_uuid = research_output["research_uuid"]
+        try:
+            research_journal_title = research_output["external_author_uuids"]
+        except KeyError:
+            data = pure_research_output_uuid(research_output_uuid)
+            item = data["items"][0]
+            external_author_uuids = []
+            try:
+                contributors = item["contributors"]
+                for contributor in contributors:
+                    if contributor["typeDiscriminator"] == "ExternalContributorAssociation":
+                        external_author_uuid = contributor["externalPerson"]["uuid"]
+                        external_author_uuids.append(external_author_uuid)
+            except (IndexError, KeyError):
+                external_author_uuids = external_author_uuids
+
+        try:
+            research_journal_title = research_output["external_author_uuids"]
+        except KeyError:
+            data = pure_research_output_uuid(research_output_uuid)
+            item = data["items"][0]
+            external_author_uuids = []
+            internal_author_uuids = []
+            try:
+                contributors = item["contributors"]
+                for contributor in contributors:
+                    if contributor["typeDiscriminator"] == "ExternalContributorAssociation":
+                        external_author_uuid = contributor["externalPerson"]["uuid"]
+                        external_author_uuids.append(external_author_uuid)
+                    elif contributor["typeDiscriminator"] == "InternalContributorAssociation":
+                        internal_author_uuid = contributor["person"]["uuid"]
+                        internal_author_uuids.append(internal_author_uuid)
+            except (IndexError, KeyError):
+                internal_author_uuids = internal_author_uuids
+                        
 
 # import os
 # from db.db_base import get_db_handle

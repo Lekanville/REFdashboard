@@ -17,4 +17,11 @@ class ResearchJournalDetails(BaseModel):
     research_uuid: str
     sjr: str | None = None
     altmetric_score: str | None = None
-    date: str | None = None
+    date: str
+
+class ResearchOutputAuthors(BaseModel):
+    author_name: str 
+    author_uuid:str
+    uoa: str | None = None
+    date: str
+    

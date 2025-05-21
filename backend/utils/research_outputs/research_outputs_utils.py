@@ -164,13 +164,26 @@ async def get_research_output_details(research_outputs_uuids: List[str]):
                         for contributor in contributors:
                             fname = contributor["name"]["firstName"]
                             lname = contributor["name"]["lastName"]
-                        #     if contributor["contributorType"] == "Author":
-                        #         author = contributor["name"]
-                        #         break
                             author = f"{fname} {lname}"
                             authors.append(author)
                     except (IndexError, KeyError):
-                        authors = ""  
+                        authors = ""
+
+                    external_author_uuids = []
+                    internal_author_uuids = []
+                    try:
+                        contributors = item["contributors"]
+                        for contributor in contributors:
+                            if contributor["typeDiscriminator"] == "ExternalContributorAssociation":
+                                external_author_uuid = contributor["externalPerson"]["uuid"]
+                                external_author_uuids.append(external_author_uuid)
+                            elif contributor["typeDiscriminator"] == "InternalContributorAssociation":
+                                internal_author_uuid = contributor["person"]["uuid"]
+                                internal_author_uuids.append(internal_author_uuid)
+                    except (IndexError, KeyError):
+                        external_author_uuids = external_author_uuids
+                        internal_author_uuids = internal_author_uuids
+                        
 
                     output_detail={
                         "research_uuid": research_uuid,
@@ -184,6 +197,8 @@ async def get_research_output_details(research_outputs_uuids: List[str]):
                         "doi": doi,
                         "issn": issn,
                         "authors": authors,
+                        "external_author_uuids": external_author_uuids,
+                        "internal_author_uuids": internal_author_uuids
                     }
 
                     #research_ouput = dict(ResearchOutput(**output_detail))
