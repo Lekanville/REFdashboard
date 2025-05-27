@@ -20,8 +20,8 @@ class ResearchJournalDetails(BaseModel):
     date: str
 
 class ResearchOutputAuthors(BaseModel):
+    author_uuid:str | None = None
     author_name: str 
-    author_uuid:str
     uoa: str | None = None
     date: str
     

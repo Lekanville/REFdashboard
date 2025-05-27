@@ -5,6 +5,7 @@ import datetime
 from typing import List
 from db.db_base import get_db_handle
 from db.models.res_outputs import ResearchOutput
+from db.models.res_outputs import ResearchOutputAuthors
 from utils.journal_details.requests import pure_research_output_uuid
 
 scopus_api_key = os.environ.get("SCOPUS_API_KEY")
@@ -86,10 +87,13 @@ async def get_research_output_details(research_outputs_uuids: List[str]):
     db_name = os.environ.get("DB_NAME", "")
     uuid_col_name = os.environ.get("RESEARCH_OUTPUT_UUIDS", "")
     details_col_name = os.environ.get("RESEARCH_OUTPUT_COLLECTION", "")
+    res_output_authors = os.environ.get("RESEARCH_OUTPUT_AUTHORS", "")
+    
     CLIENT = get_db_handle()
     database = CLIENT.get_database(db_name)
     collection_uuids = database.get_collection(uuid_col_name)
     collection_details = database.get_collection(details_col_name)
+    res_output_authors_collection = database.get_collection(res_output_authors)
 
     for research_output in research_outputs_uuids:
         check_details = research_output["check_details"]
@@ -158,29 +162,53 @@ async def get_research_output_details(research_outputs_uuids: List[str]):
                         issn = ""   
 
                     # Contributors
-                    authors = []
-                    try:
-                        contributors = item["contributors"]
-                        for contributor in contributors:
-                            fname = contributor["name"]["firstName"]
-                            lname = contributor["name"]["lastName"]
-                            author = f"{fname} {lname}"
-                            authors.append(author)
-                    except (IndexError, KeyError):
-                        authors = ""
+                    # authors = []
+                    # try:
+                    #     contributors = item["contributors"]
+                    #     for contributor in contributors:
+                    #         fname = contributor["name"]["firstName"]
+                    #         lname = contributor["name"]["lastName"]
+                    #         author = f"{fname} {lname}"
+                    #         authors.append(author)
+                    # except (IndexError, KeyError):
+                    #     authors = ""
 
+                    authors = []
                     external_author_uuids = []
                     internal_author_uuids = []
                     try:
                         contributors = item["contributors"]
                         for contributor in contributors:
+                            fname = contributor["name"]["firstName"]
+                            lname = contributor["name"]["lastName"]
+                            author_name = f"{fname} {lname}"
+                            authors.append(author_name)
                             if contributor["typeDiscriminator"] == "ExternalContributorAssociation":
-                                external_author_uuid = contributor["externalPerson"]["uuid"]
-                                external_author_uuids.append(external_author_uuid)
+                                try:
+                                    external_author_uuid = contributor["externalPerson"]["uuid"]
+                                    external_author_uuids.append(external_author_uuid)
+                                except(KeyError):
+                                    external_author_uuids = external_author_uuids
                             elif contributor["typeDiscriminator"] == "InternalContributorAssociation":
-                                internal_author_uuid = contributor["person"]["uuid"]
-                                internal_author_uuids.append(internal_author_uuid)
+                                try:
+                                    internal_author_uuid = contributor["person"]["uuid"]
+                                    internal_author_uuids.append(internal_author_uuid)
+                                except(KeyError):
+                                    query = {"author_name": author_name}
+                                    author_count = await res_output_authors_collection.count_documents(query)
+                                    if (author_count == 0):
+                                        date = str(datetime.datetime.now())
+                                        author_detail={
+                                                "author_uuid": "",
+                                                "author_name": author_name,
+                                                "uoa": "",
+                                                "date":date
+                                                }
+                                        journal_details = dict(ResearchOutputAuthors(author_detail))
+                                        await res_output_authors_collection.insert_one(journal_details)
+                                        internal_author_uuids = internal_author_uuids
                     except (IndexError, KeyError):
+                        authors = authors
                         external_author_uuids = external_author_uuids
                         internal_author_uuids = internal_author_uuids
                         
