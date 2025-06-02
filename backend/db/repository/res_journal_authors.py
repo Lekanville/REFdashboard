@@ -18,28 +18,31 @@ async def research_journal_authors():
     research_outputs_authors = await output_collection.find({}, {"_id":0, "internal_author_uuids": 1}).to_list(100000)
 
     for result in research_outputs_authors:
-        author_uuids = result["internal_author_uuids"]
-        for author_uuid in author_uuids:
-            query = {"author_uuid": author_uuid}
-            author_count = await res_output_authors_collection.count_documents(query)
-            if (author_count == 0):
-                data =  author_details(author_uuid)
-                try:
-                    item = data["items"][0]
-                    fname = item["name"]["firstName"]
-                    lname = item["name"]["lastName"]
-                    author_name = f"{fname} {lname}"
-                except(IndexError, KeyError):
-                    author_name = ""
+        try: 
+            internal_author_uuids = result["internal_author_uuids"]
+            if len(internal_author_uuids) > 0:
+                for author_uuid in internal_author_uuids:
+                    query = {"author_uuid": author_uuid}
+                    author_count = await res_output_authors_collection.count_documents(query)
+                    if (author_count == 0):
+                        data =  author_details(author_uuid)
+                        try:
+                            item = data["items"][0] 
+                            fname = item["name"]["firstName"]
+                            lname = item["name"]["lastName"]
+                            author_name = f"{fname} {lname}"
+                        except(IndexError, KeyError):
+                            author_name = ""
 
-                date = str(datetime.datetime.now())
-                author_detail={
-                        "author_uuid": author_uuid,
-                        "author_name": author_name,
-                        "uoa": "",
-                        "date":date
-                        }
-                journal_details = dict(ResearchOutputAuthors(author_detail))
-                await res_output_authors_collection.insert_one(journal_details)
-
+                        date = str(datetime.datetime.now())
+                        author_detail={
+                                "author_uuid": author_uuid,
+                                "author_name": author_name,
+                                "uoa": "",
+                                "date":date
+                                }
+                        #journal_details = dict(ResearchOutputAuthors(author_detail))
+                        await res_output_authors_collection.insert_one(author_detail)
+        except KeyError:
+            pass
     return 1 

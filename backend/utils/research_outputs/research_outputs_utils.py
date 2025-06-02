@@ -179,10 +179,14 @@ async def get_research_output_details(research_outputs_uuids: List[str]):
                     try:
                         contributors = item["contributors"]
                         for contributor in contributors:
-                            fname = contributor["name"]["firstName"]
-                            lname = contributor["name"]["lastName"]
-                            author_name = f"{fname} {lname}"
-                            authors.append(author_name)
+                            try:
+                                fname = contributor["name"]["firstName"]
+                                lname = contributor["name"]["lastName"]
+                                author_name = f"{fname} {lname}"
+                                authors.append(author_name)
+                            except(KeyError):
+                                authors = authors
+                                
                             if contributor["typeDiscriminator"] == "ExternalContributorAssociation":
                                 try:
                                     external_author_uuid = contributor["externalPerson"]["uuid"]
@@ -204,8 +208,8 @@ async def get_research_output_details(research_outputs_uuids: List[str]):
                                                 "uoa": "",
                                                 "date":date
                                                 }
-                                        journal_details = dict(ResearchOutputAuthors(author_detail))
-                                        await res_output_authors_collection.insert_one(journal_details)
+                                        # journal_details = dict(ResearchOutputAuthors(author_detail))
+                                        await res_output_authors_collection.insert_one(author_detail)
                                         internal_author_uuids = internal_author_uuids
                     except (IndexError, KeyError):
                         authors = authors
