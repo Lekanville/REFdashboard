@@ -96,7 +96,7 @@ async def get_research_output_uuids_automated():
             raise HTTPException(400, detail="Something went wrong")
 
 @router.on_event("startup")
-@repeat_every(seconds=60*60)  # 1 hour
+@repeat_every(seconds=60*60*60)  # 1 hour
 async def get_research_output_details_automated():
     """
     This is the automated version of the "get_research_ouput_uuids" route. 
@@ -122,7 +122,7 @@ async def get_research_output_details_automated():
 
 @router.on_event("startup")
 #@repeat_at(cron="0 12 1 * *") #every month at 12 noon
-@repeat_every(seconds=60*60)  # 60 hours
+@repeat_every(seconds=60*60*60)  # 60 hours
 async def get_journal_features_automated():
     """
     This is the automated version of the "get_journal_feature" route. 
@@ -141,7 +141,7 @@ async def get_journal_features_automated():
 
 @router.on_event("startup")
 #@repeat_at(cron="0 12 1 * *") #every month at 12 noon
-@repeat_every(seconds=60*60)  # 60 hours
+@repeat_every(seconds=60*60*60)  # 60 hours
 async def get_author_details_automated():
     """
     To get the authors
