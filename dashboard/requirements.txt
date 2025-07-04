@@ -4,3 +4,4 @@ numpy
 altair
 PyYAML
 streamlit_authenticator
+plotly

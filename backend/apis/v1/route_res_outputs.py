@@ -5,6 +5,7 @@ from db.repository.res_outputs_uuids import research_outputs_uuids
 from db.repository.res_outputs_details import research_outputs_details
 from db.repository.res_journal_features import research_journal_details
 from db.repository.res_journal_authors import research_journal_authors
+from db.repository.res_download_data import download_research_data  
 import yaml
 from yaml.loader import SafeLoader
 
@@ -70,6 +71,20 @@ async def get_author_details():
         return 1
     else:
         raise HTTPException(400, detail="Something went wrong")
+    
+
+@router.post("/api/download_data/", status_code=status.HTTP_201_CREATED)
+async def get_download_data(OUTPUT_FILE: str):
+    """
+    To download the the wrangled data from the database.
+    This is used to download the data for the research outputs, journal features, and authors.
+    """
+
+    response = await download_research_data(OUTPUT_FILE)
+    if response:
+        return 1
+    else:
+        raise HTTPException(400, detail="Something went wrong")
 
 
 @router.on_event("startup")
@@ -96,7 +111,7 @@ async def get_research_output_uuids_automated():
             raise HTTPException(400, detail="Something went wrong")
 
 @router.on_event("startup")
-@repeat_every(seconds=60*60*60)  # 1 hour
+@repeat_every(seconds=60*60*60)  # 60 hour
 async def get_research_output_details_automated():
     """
     This is the automated version of the "get_research_ouput_uuids" route. 
@@ -153,6 +168,40 @@ async def get_author_details_automated():
         return 1
     else:
         raise HTTPException(400, detail="Something went wrong")
+
+
+
+# import os
+# import re
+# from db.db_base import get_db_handle
+
+# @router.get("/api/get_journal_titles/", status_code=status.HTTP_201_CREATED)
+# async def delete_missing_abstracts_journal_features():
+#     db_name = os.environ.get("DB_NAME", "")
+#     res_output_col_name = os.environ.get("RESEARCH_OUTPUT_COLLECTION", "")
+#     res_journal_details_col_name = os.environ.get("RESEARCH_JOURNAL_DETAILS_COLLECTION", "")
+
+#     CLIENT = get_db_handle()
+#     database = CLIENT.get_database(db_name)
+#     output_collection = database.get_collection(res_output_col_name)
+#     journal_details_collection = database.get_collection(res_journal_details_col_name)
+
+#     research_outputs = await output_collection.find({}, {"_id":0, "research_uuid": 1, "abstract":1}).to_list(100000)
+
+#     for research_output in research_outputs:
+#         research_abstract = str(research_output["abstract"])
+        
+#         if (research_abstract == "") or (re.search("no abstract*", research_abstract.lower())):
+#             research_output_uuid = research_output["research_uuid"]
+
+#             filter = {"research_uuid":research_output_uuid}
+#             await journal_details_collection.find_one_and_delete(
+#                                        filter,
+#                                        projection = None,
+#                                        sort = None
+#                                     )
+#     return 1
+
 
 # import os
 # import datetime

@@ -1,4 +1,5 @@
 import os
+import re
 import datetime
 from db.db_base import get_db_handle
 from utils.journal_details.scopus_details import get_scopus_details
@@ -34,7 +35,7 @@ async def research_journal_details():
 
             #Replace abstract if missing in PURE and availbale in Scopus
             scopus_abstract = scopus_data["abstract"]
-            if (research_output_abstract == "") & (scopus_abstract != ""):
+            if (((research_output_abstract == "") or (re.search("no abstract*", research_output_abstract.lower()))) and scopus_abstract != ""):
                 update = {"abstract":scopus_abstract}
 
                 await output_collection.find_one_and_update(
