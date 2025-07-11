@@ -1,7 +1,7 @@
 streamlit
 pandas
 numpy
-altair
 PyYAML
 streamlit_authenticator
 plotly
+motor

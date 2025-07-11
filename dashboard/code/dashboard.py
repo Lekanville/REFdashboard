@@ -1,12 +1,14 @@
-from code.authentication import reset_password
-import pandas as pd
+import os
+import io
 import yaml
-import io 
+import pandas as pd
 from yaml.loader import SafeLoader
+from code.authentication import reset_password
 from code.plots.plots import *
 from code.plots.colors import Colors
 from code.tools.tools import select_data_for_uoa
 from code.tools.tools import get_research_methods_for_uoa
+from code.db.predictions import get_predictions_sync
 
 import plotly
 import plotly.graph_objects as px
@@ -17,9 +19,14 @@ with open('../config.yaml') as file:
 
 
 # The data
-df = pd.read_csv('../data/Research_Output_Collection_features_predictions_and_embeddings.csv')
+# df = pd.read_csv('../data/Research_Output_Collection_features_predictions_and_embeddings.csv')
+# df = df[df['article_type'] == "ContributionToJournal"]
+# df_all_ref_2d = pd.read_csv('../data/df_sampled_ref_embeddings_2D.csv')
+
+data_prediction, data_all_ref_embeddings_2d = get_predictions_sync()
+df = pd.DataFrame(data_prediction)
 df = df[df['article_type'] == "ContributionToJournal"]
-df_all_ref_2d = pd.read_csv('../data/df_sampled_ref_embeddings_2D.csv')
+df_all_ref_2d = pd.DataFrame(data_all_ref_embeddings_2d)
 
 
 REFlabels = {
