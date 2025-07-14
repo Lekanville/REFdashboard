@@ -110,8 +110,8 @@ async def download_new_research_data():
             # new_features.to_csv(OUTPUT_FILE, index=False)
             # print(f"New research data downloaded and saved to {OUTPUT_FILE}")
 
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            OUTPUT_FILE = f"new_research_data_{timestamp}.csv"
+            # timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            # OUTPUT_FILE = f"new_research_data_{timestamp}.csv"
             csv_buffer = io.StringIO()
             new_features.to_csv(csv_buffer, index=False)
             csv_buffer.seek(0)

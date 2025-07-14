@@ -82,7 +82,7 @@ async def get_author_details():
 async def get_download_data():
     """
     To download the wrangled data (research output abstracts, SJR, Altmetric etc) from the database.
-    This is used to download the data for the research outputs, journal features, and authors.
+    This will download the all the research outputs with journal features, and authors.
     """
 
     response = await download_research_data()
@@ -98,7 +98,8 @@ async def get_download_new_data():
     To download the new wrangled data (research output abstracts, SJR, Altmetric etc) from the database.
     This is used to download the new data for the research outputs, abstracts, journal features (SJR and almetric scores).
     The new data is defined as the data that has been added to the database since the last download.
-    The file will be saved in the CSV format.
+    The file will be saved in the CSV format. The outputs that were filtered during predictions (possibly out due to incomplete
+    LLM features) will also be included.
     """
     
     response = await download_new_research_data()

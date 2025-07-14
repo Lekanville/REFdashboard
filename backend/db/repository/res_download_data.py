@@ -49,8 +49,8 @@ async def download_research_data():
     all_features = pd.merge(research_outputs_df, journal_details_df, on="research_uuid", how="left")
 
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    OUTPUT_FILE = f"all_research_data_{timestamp}.csv"
+    # timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    # OUTPUT_FILE = f"all_research_data_{timestamp}.csv"
     csv_buffer = io.StringIO()
     all_features.to_csv(csv_buffer, index=False)
     csv_buffer.seek(0)
