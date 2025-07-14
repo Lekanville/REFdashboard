@@ -79,15 +79,15 @@ async def get_author_details():
     
 
 @router.post("/api/download_all_research_data/", status_code=status.HTTP_201_CREATED)
-async def get_download_data(OUTPUT_FILE: str):
+async def get_download_data():
     """
     To download the wrangled data (research output abstracts, SJR, Altmetric etc) from the database.
     This is used to download the data for the research outputs, journal features, and authors.
     """
 
-    response = await download_research_data(OUTPUT_FILE)
+    response = await download_research_data()
     if response:
-        return 1
+        return response
     else:
         raise HTTPException(400, detail="Something went wrong")
     

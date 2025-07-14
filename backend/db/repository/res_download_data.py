@@ -1,9 +1,12 @@
 import os
+import io
 import pandas as pd
 from db.db_base import get_db_handle
+import datetime
+from fastapi.responses import StreamingResponse
 
 
-async def download_research_data(OUTPUT_FILE):
+async def download_research_data():
     db_name = os.environ.get("DB_NAME", "")
     res_output_col_name = os.environ.get("RESEARCH_OUTPUT_COLLECTION", "")
     res_journal_details_col_name = os.environ.get("RESEARCH_JOURNAL_DETAILS_COLLECTION", "")
@@ -45,5 +48,18 @@ async def download_research_data(OUTPUT_FILE):
 
     all_features = pd.merge(research_outputs_df, journal_details_df, on="research_uuid", how="left")
 
-    all_features.to_csv(OUTPUT_FILE, index=False)
-    return 1
+
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    OUTPUT_FILE = f"all_research_data_{timestamp}.csv"
+    csv_buffer = io.StringIO()
+    all_features.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
+    return StreamingResponse(
+                csv_buffer,
+                media_type="text/csv",
+                headers={"Content-Disposition": "attachment; filename=OUTPUT_FILE"}
+            )
+
+
+    # all_features.to_csv(OUTPUT_FILE, index=False)
+    # return 1
