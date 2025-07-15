@@ -64,7 +64,11 @@ async def download_new_research_data():
 
     # Filter research abstracts with missing or empty abstracts
     research_outputs_df_abstracts = research_outputs_df_journal[
-        research_outputs_df_journal['abstract'].notnull() & (research_outputs_df_journal['abstract'] != "")
+        (research_outputs_df_journal['abstract'].notnull()) & 
+        (research_outputs_df_journal['abstract'] != "" ) &
+        (research_outputs_df_journal['abstract'] != "<p>[Figure: see text].</p>") &
+        (research_outputs_df_journal['abstract'] != "<br/>") &
+        (research_outputs_df_journal['abstract'] != "<p>Logo for Physiological Reports' 10th anniversary year.</p>")
         ]
     
     # Reset index after after this filtering
@@ -75,7 +79,8 @@ async def download_new_research_data():
     research_outputs_df_abstracts_clean = pd.DataFrame()
     for i in range(len(research_outputs_df_abstracts)):
         abstract = research_outputs_df_abstracts.loc[i, 'abstract']
-        if not re.search("no abstract*", abstract.lower()):
+        if (not re.search("no abstract*", abstract.lower())) and \
+            (not re.search("this corrects the article doi:*", abstract.lower())):
             new = research_outputs_df_abstracts[research_outputs_df_abstracts.index == i]
             research_outputs_df_abstracts_clean = pd.concat([research_outputs_df_abstracts_clean, new], ignore_index=True)
     
@@ -85,7 +90,7 @@ async def download_new_research_data():
 
     # Filter research outputs that are not in predictions
     predicted_uuids = [pred['research_uuid'] for pred in predictions]
-    new_research_outputs_df = research_outputs_df_abstracts[~research_outputs_df_abstracts['research_uuid'].isin(predicted_uuids)]
+    new_research_outputs_df = research_outputs_df_abstracts_clean[~research_outputs_df_abstracts_clean['research_uuid'].isin(predicted_uuids)]
 
 
     # Fetch all journal details
