@@ -1,5 +1,6 @@
 config.yaml
 __pycache__
+DB
 mongodata
 mongodb
 *.json
@@ -8,4 +9,3 @@ data
 keep
 db_confs
 exported_db
-DB
