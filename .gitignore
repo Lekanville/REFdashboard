@@ -1,7 +1,11 @@
 config.yaml
 __pycache__
 mongodata
+mongodb
 *.json
 .env
 data
 keep
+db_confs
+exported_db
+DB

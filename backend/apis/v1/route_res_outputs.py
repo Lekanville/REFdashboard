@@ -124,7 +124,7 @@ async def upload_predictions(file: UploadFile = File(...)):
     
 
 @router.post("/api/upload_ref_embedding_pcas/", status_code=status.HTTP_201_CREATED)
-async def upload_ref_embedding_pcas(file: UploadFile = File(...)):
+async def upload_ref_embedding(file: UploadFile = File(...)):
     """
     To upload the predictions REF embedding data to the database.
     This uploads the REF embedding data of the research output from other Universities

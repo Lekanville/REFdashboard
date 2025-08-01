@@ -84,7 +84,7 @@ def plot_embeddings_for_uoas(
     # Plot REF UoAs
     for uoa in all_uoas:
         data_ref = df_all_ref_2d[df_all_ref_2d.Unit_of_assessment_number == int(uoa)]
-        marker_opacity = 1.0 if uoa == current_uoa else 0.1
+        marker_opacity = 1.0 if uoa == current_uoa else 0.3
         plot.add_trace(go.Scatter(
             name=f'REF UoA {uoa}',
             x=data_ref["corpus_embeddings_x"],
