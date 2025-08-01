@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, UploadFile, File
 from fastapi_utilities import repeat_every, repeat_at
-#from schemas.pure_output import ResearchOutput
 from db.repository.res_outputs_uuids import research_outputs_uuids
 from db.repository.res_outputs_details import research_outputs_details
 from db.repository.res_journal_features import research_journal_details

@@ -50,12 +50,12 @@ prediction = [
 all_uoas = ["1","2","4","5","6"]
 
 def publications_over_time(data, controller, st, UoA_selection_type):
-
+    # Filter data based on the UoA selection type
     predictions_selector = prediction[controller]
     distance_column = distances[controller]
     current_uoa = distance_column.split("_")[-1]
 
-
+    
     classes = sorted(data[predictions_selector].unique())
     years = sorted(data["year"].unique())
     years = [str(i) for i in years]
