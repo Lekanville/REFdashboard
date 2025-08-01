@@ -5,6 +5,7 @@ mongodata
 mongodb
 *.json
 .env
+env
 data
 keep
 db_confs
