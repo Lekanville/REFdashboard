@@ -79,7 +79,7 @@ async def get_author_details():
     
 
 @router.post("/api/download_all_research_data/", status_code=status.HTTP_201_CREATED)
-async def get_download_data():
+async def download_all_outputs_data():
     """
     To download the wrangled data (research output abstracts, SJR, Altmetric etc) from the database.
     This will download the all the research outputs with journal features, and authors.
@@ -93,7 +93,7 @@ async def get_download_data():
     
 
 @router.post("/api/download_new_research_data/", status_code=status.HTTP_201_CREATED)
-async def get_download_new_data():
+async def download_new_outputs_data():
     """
     To download the new wrangled data (research output abstracts, SJR, Altmetric etc) from the database.
     This is used to download the new data for the research outputs, abstracts, journal features (SJR and almetric scores).
@@ -109,7 +109,7 @@ async def get_download_new_data():
         raise HTTPException(400, detail="Something went wrong")
 
 @router.post("/api/upload_predictions/", status_code=status.HTTP_201_CREATED)
-async def get_upload_predictions(file: UploadFile = File(...)):
+async def upload_predictions(file: UploadFile = File(...)):
     """
     To upload the predictions data to the database.
     This is used to upload the predictions data for the research outputs.
@@ -124,7 +124,7 @@ async def get_upload_predictions(file: UploadFile = File(...)):
     
 
 @router.post("/api/upload_ref_embedding_pcas/", status_code=status.HTTP_201_CREATED)
-async def get_upload_ref_embedding_pcas(file: UploadFile = File(...)):
+async def upload_ref_embedding_pcas(file: UploadFile = File(...)):
     """
     To upload the predictions REF embedding data to the database.
     This uploads the REF embedding data of the research output from other Universities

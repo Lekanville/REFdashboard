@@ -4,3 +4,4 @@ mongodata
 *.json
 .env
 data
+keep

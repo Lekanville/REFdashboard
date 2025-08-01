@@ -23,20 +23,21 @@ class Colors:
                     'class_6': "#9099FB",
                     'class_7': "#DC90FA"
                     }
-    
-    bristol_uoa_colors = {'uoa_1': '#FF6692',
-                'uoa_2': '#D96DB3',
-                'uoa_4': '#19D3F3',
-                'uoa_5': '#00CC96',
-                'uoa_6': '#AB63FA',
-                }
+    bristol_uoa_colors = {
+        'uoa_1': '#F28B9C',  # light red
+        'uoa_2': '#D6A3C6',  # light purple
+        'uoa_4': '#8FD3E6',  # light teal-blue
+        'uoa_5': '#A7F3A1',  # light green
+        'uoa_6': '#C2A6E6',  # light violet
+    }
 
-    ref_uoa_colors = {'uoa_1': "#B64666",
-                'uoa_2': "#873C6C",
-                'uoa_4': "#408F9D",
-                'uoa_5': "#40947D",
-                'uoa_6': "#70439F",
-                }
+    ref_uoa_colors = {
+        'uoa_1': "#B64666",  # dark red
+        'uoa_2': "#873C6C",  # dark purple
+        'uoa_4': "#408F9D",  # dark teal-blue
+        'uoa_5': "#3CA13B",  # dark green (changed from #40947D)
+        'uoa_6': "#70439F",  # dark violet
+    }
     # Additional colors can be added as needed
 
     @classmethod
