@@ -1,14 +1,18 @@
-from code.authentication import reset_password
-import pandas as pd
-import yaml
-from yaml.loader import SafeLoader
-from code.plots.plots import bar_plot
+from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import plotly
 import plotly.graph_objects as px
 import plotly.graph_objs as go
-import numpy as np
-with open('../config.yaml') as file:
+import yaml
+from yaml.loader import SafeLoader
+
+from code.authentication import reset_password
+from code.plots.plots import bar_plot
+
+CONFIG_PATH = Path(__file__).resolve().parents[3] / "dashboard" / "config.yaml"
+with CONFIG_PATH.open() as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 REFlabels = {
@@ -314,12 +318,12 @@ def render_dashboard(session_state, authenticator, st):
                 #     if email_of_registered_user:
                 #         config["credentials"]["usernames"][username_of_registered_user]["uoas"] = []
                 #         config["credentials"]["usernames"][username_of_registered_user]["admin"] = False
-                #         with open('../config.yaml', 'w') as file:
-                #             yaml.dump(config, file, default_flow_style=False)   
+                #         with CONFIG_PATH.open('w') as file:
+                #             yaml.dump(config, file, default_flow_style=False)
                 #         st.success('User registered successfully')
                 # except Exception as e:
                 #     st.error(e)
-                with open('../config.yaml', 'w') as file:
+                with CONFIG_PATH.open('w') as file:
                     yaml.dump(config, file, default_flow_style=False)
             else: 
                 # Tab content for each UoA

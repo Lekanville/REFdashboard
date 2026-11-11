@@ -1,18 +1,22 @@
-import yaml
+from pathlib import Path
+
 import pandas as pd
+import yaml
 from yaml.loader import SafeLoader
+
 from code.authentication import reset_password
-from code.tools.tools import select_data_for_uoa
-from code.db.predictions import get_predictions_sync
-from code.components.plots_publications import plot_publications_over_time_bar 
+from code.components.download_predictions import download_predictions_section
 from code.components.plots_publications import plot_distance_vs_prediction_for_uoa
 from code.components.plots_publications import plot_embeddings_for_uoas
-from code.components.plots_sjr_alt import plot_sjr_scores_over_time
+from code.components.plots_publications import plot_publications_over_time_bar
 from code.components.plots_sjr_alt import plot_altmetric_scores_over_time
+from code.components.plots_sjr_alt import plot_sjr_scores_over_time
 from code.components.plots_top_reserach_methods import plot_top_research_methods
-from code.components.download_predictions import download_predictions_section
+from code.db.predictions import get_predictions_sync
+from code.tools.tools import select_data_for_uoa
 
-with open('../config.yaml') as file:
+CONFIG_PATH = Path(__file__).resolve().parents[2] / "dashboard" / "config.yaml"
+with CONFIG_PATH.open() as file:
     config = yaml.load(file, Loader=SafeLoader)
 
 
@@ -23,37 +27,51 @@ df = df[df['article_type'] == "ContributionToJournal"]
 df_all_ref_2d = pd.DataFrame(data_all_ref_embeddings_2d)
 
 
-REFlabels = {
-     "UoA1": "REF UoA1 - Clinical Medicine",
-     "UoA2": "REF UoA2 - Public Health, Health Services and Primary Care",
-     "UoA4": "REF UoA4 - Psychology, Psychiatry and Neuroscience",
-     "UoA5": "REF UoA5 - Biological Sciences",
-     "UoA6": "REF UoA6 - Agriculture, Food and Veterinary Sciences",
+UOA_CONFIG = {
+    "UoA1": {
+        "number": "1",
+        "label": "REF UoA1 - Clinical Medicine",
+        "distance_column": "distance_to_median_of_uoa_1",
+        "prediction_column": "predictions_for_uoa_1",
+    },
+    "UoA2": {
+        "number": "2",
+        "label": "REF UoA2 - Public Health, Health Services and Primary Care",
+        "distance_column": "distance_to_median_of_uoa_2",
+        "prediction_column": "predictions_for_uoa_2",
+    },
+    "UoA4": {
+        "number": "4",
+        "label": "REF UoA4 - Psychology, Psychiatry and Neuroscience",
+        "distance_column": "distance_to_median_of_uoa_4",
+        "prediction_column": "predictions_for_uoa_4",
+    },
+    "UoA5": {
+        "number": "5",
+        "label": "REF UoA5 - Biological Sciences",
+        "distance_column": "distance_to_median_of_uoa_5",
+        "prediction_column": "predictions_for_uoa_5",
+    },
+    "UoA6": {
+        "number": "6",
+        "label": "REF UoA6 - Agriculture, Food and Veterinary Sciences",
+        "distance_column": "distance_to_median_of_uoa_6",
+        "prediction_column": "predictions_for_uoa_6",
+    },
 }
 
-distances = [
-  "distance_to_median_of_uoa_1",
-  "distance_to_median_of_uoa_2",
-  "distance_to_median_of_uoa_4",
-  "distance_to_median_of_uoa_5",
-  "distance_to_median_of_uoa_6"
-]
+REFlabels = {uoa: cfg["label"] for uoa, cfg in UOA_CONFIG.items()}
+distances = [cfg["distance_column"] for cfg in UOA_CONFIG.values()]
+prediction = [cfg["prediction_column"] for cfg in UOA_CONFIG.values()]
+all_uoas = [cfg["number"] for cfg in UOA_CONFIG.values()]
 
-prediction = [
-  "predictions_for_uoa_1",
-  "predictions_for_uoa_2",
-  "predictions_for_uoa_4",
-  "predictions_for_uoa_5",
-  "predictions_for_uoa_6"
-]
 
-all_uoas = ["1","2","4","5","6"]
-
-def publications_over_time(data, controller, st, UoA_selection_type):
-    # Filter data based on the UoA selection type
-    predictions_selector = prediction[controller]
-    distance_column = distances[controller]
-    current_uoa = distance_column.split("_")[-1]
+def publications_over_time(data, current_uoa, st, UoA_selection_type):
+    # Filter data based on the selected UoA and its explicit mapping.
+    uoa_config = UOA_CONFIG[current_uoa]
+    predictions_selector = uoa_config["prediction_column"]
+    distance_column = uoa_config["distance_column"]
+    current_uoa_number = uoa_config["number"]
 
     
     classes = sorted(data[predictions_selector].unique())
@@ -103,7 +121,7 @@ def publications_over_time(data, controller, st, UoA_selection_type):
             classes,
             predictions_selector,
             distance_column,
-            current_uoa,
+            current_uoa_number,
         )
         plot.show()
         st.plotly_chart(plot, key=f"distances_{current_uoa}", use_container_width=True)
@@ -115,7 +133,7 @@ def publications_over_time(data, controller, st, UoA_selection_type):
             all_uoas,
             df_all_ref_2d,
             data,
-            current_uoa
+            current_uoa_number
         )
         plot.show()
         st.plotly_chart(plot, key=f"embeddings_{current_uoa}", use_container_width=True)
@@ -182,7 +200,8 @@ def render_dashboard(session_state, authenticator, st):
     uoa_controller = 0
     for tab in tabs:
         with tab:
-            if admin == True and uoas[uoa_controller] == "admin":
+            selected_uoa = uoas[uoa_controller]
+            if admin == True and selected_uoa == "admin":
                 st.header("Admin", divider="red")
                 for user in list(config["credentials"]["usernames"]):
                     st.markdown(f"**User:** {user}")
@@ -210,17 +229,17 @@ def render_dashboard(session_state, authenticator, st):
                                                                 'uoas': useruoas} 
                     st.divider()
 
-                with open('../config.yaml', 'w') as file:
+                with CONFIG_PATH.open('w') as file:
                     yaml.dump(config, file, default_flow_style=False)
             else: 
                 # Tab content for each UoA
-                st.header(REFlabels[uoas[uoa_controller]], divider="red")
+                st.header(REFlabels[selected_uoa], divider="red")
                 col_1, col_2 = st.columns(2)
 
                 with col_2:
                     UoA_selection_type = st.selectbox("Choose how UoA data is selected",
                                                           ("Embedding distance less than 0.7", "Minimum embedding distance"),
-                                                        key =f"select_{uoas[uoa_controller]}"
+                                                        key =f"select_{selected_uoa}"
                                                         )
                     
                 REFdata = select_data_for_uoa(df, UoA_selection_type, distances)
@@ -229,8 +248,8 @@ def render_dashboard(session_state, authenticator, st):
                     # row
                     st.markdown("You can select the UoA data based on either embedding distance of less than 0.7 or minimum embedding distance. " \
                     "The data is filtered based on the selected method and then visualized.")
-                    st.markdown(f'**The current selection is "{UoA_selection_type}" with {len(REFdata[uoas[uoa_controller]])} articles.**')
+                    st.markdown(f'**The current selection is "{UoA_selection_type}" with {len(REFdata[selected_uoa])} articles.**')
 
                 # Plotting publications over time
-                publications_over_time(REFdata[uoas[uoa_controller]], uoa_controller, st, UoA_selection_type)
+                publications_over_time(REFdata[selected_uoa], selected_uoa, st, UoA_selection_type)
                 uoa_controller += 1            

@@ -23,6 +23,6 @@ async def  upload_ref_embedding_pcas(REF_EMBEDDINGS_PCA):
         # Convert each row to a dictionary
         data = df.iloc[i].to_dict()
         data['created_at'] = date
-        ref_embeddings_pca_collection.insert_one(data)
-        
+        await ref_embeddings_pca_collection.insert_one(data)
+
     return True

@@ -1,34 +1,36 @@
-version: '3.8'
 services:
   mongo:
-    image: mongo:latest
-    restart: always
+    image: mongo:7
+    container_name: ref_mongo
+    restart: unless-stopped
     env_file:
-      - .env
+      - ./env
     ports:
-      - 27017:27017
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./mongodata:/data/db
-      - ./db-confs/mongod.conf:/etc/mongo/mongod.conf
-    command: [ "mongod", "--config", "/etc/mongo/mongod.conf" ]
+      - ./db-confs/mongod.conf:/etc/mongod.conf
+    command: ["mongod", "--config", "/etc/mongod.conf"]
     networks:
       - app-network
 
   mongo-express:
-    image: mongo-express
-    restart: always
+    image: mongo-express:latest
+    container_name: ref_mongo_express
+    restart: unless-stopped
     env_file:
-      - .env
+      - ./env
     ports:
-      - 8081:8081
+      - "8081:8081"
     environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/
-      ME_CONFIG_BASICAUTH: false
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
     networks:
       - app-network
 
@@ -36,35 +38,44 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: ref_api
+    restart: unless-stopped
     env_file:
-      - .env
+      - ./env
+    environment:
+      PYTHONPATH: /app
+      API_KEY: ${API_KEY}
     ports:
       - "8000:8000"
     depends_on:
       - mongo
-    working_dir: /home
+    working_dir: /app
     volumes:
-      - ./backend:/home
+      - ./backend:/app
     networks:
       - app-network
 
   app:
-    image: yourstreamlitapp:latest
-    build: 
+    build:
       context: ./dashboard
       dockerfile: Dockerfile
+    container_name: ref_dashboard
+    restart: unless-stopped
     env_file:
-      - .env
+      - ./env
+    environment:
+      PYTHONPATH: /app
+      API_KEY: ${API_KEY}
     ports:
-      - 8501:8501
+      - "8501:8501"
     depends_on:
       - mongo
-    working_dir: /home
+      - ref_api
+    working_dir: /app
     volumes:
-      - ./dashboard:/home
+      - ./dashboard:/app
     networks:
       - app-network
-
 
 networks:
   app-network:
