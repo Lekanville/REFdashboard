@@ -26,6 +26,7 @@ def organization_dependants(school_uuid: str):
         
         return data
 
+#to get all research outputs
 def pure_research_output_uuid(research_uuid):
     req_pure = requests.post(
         "https://research-information.bris.ac.uk/ws/api/research-outputs/search",
